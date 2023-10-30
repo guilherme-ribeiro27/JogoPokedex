@@ -1,44 +1,15 @@
+import 'package:jogo_pokedex/src/utils/constants.dart';
+
 class Pokemon {
-  int? id;
-  String? name;
-  String? image;
-  Pokemon({this.id, this.name, this.image});
+  final String name;
+  final String url;
 
-  Pokemon.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    image = json['sprites']['other']['official-artwork']['front_default'];
-  }
+  get id => int.parse(url.split('/').reversed.skip(1).first);
+  get image => '$pokemonImgUrl/$id.png';
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['name'] = name;
-  
-    return data;
-  }
-}
+  Pokemon({ required this.name, required this.url});
 
-class PokemonList {
-  List<PokemonMinimal>? pokemons;
-
-  PokemonList({this.pokemons});
-
-  PokemonList.fromJson(Map<String, dynamic> json) {
-    if (json['results'] != null) {
-      pokemons = <PokemonMinimal>[];
-      json['results'].forEach((v) {
-        pokemons!.add(PokemonMinimal.fromJson(v));
-      });
-    }
-  }
-}
-class PokemonMinimal{
-  String? name;
-  String? url;
-  PokemonMinimal({this.name, this.url});
-
-  PokemonMinimal.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
-    url = json['url'];
+  factory Pokemon.fromJson(Map<String, dynamic> json) {
+    return Pokemon(name: json['name'], url: json['url']);
   }
 }

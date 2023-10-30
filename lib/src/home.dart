@@ -27,15 +27,10 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: pokemons,
       builder: ((context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
         if (snapshot.hasData) {
           var pokemons = snapshot.data as List<Pokemon>;
           // if (pokemons.isEmpty)
           //   return const Center(child: Text('Nenhum pokemon encontrado'));
-          print(snapshot);
           var randomPokemons = pokemons.take(4).toList();
           var randomNumber = Random().nextInt(4);
           var pokemon = randomPokemons[randomNumber];
@@ -50,7 +45,7 @@ class _HomeState extends State<Home> {
                 ),
                 Image.network(pokemon.image!),
                 Column(
-                  children: randomPokemons.map((e) => Text(e.name!)).toList(),
+                  children: randomPokemons.map((e) => Text(e.name)).toList(),
                 )
               ],
             ),
@@ -64,43 +59,14 @@ class _HomeState extends State<Home> {
   }
 
   Future<List<Pokemon>> fetchPokemons() async {
-    late List<Pokemon> pokemons;
+    final List<Pokemon> pokemons = [];
     final response = await http
         .get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=151'));
     if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      final lista = PokemonList.fromJson(result);
-      // List<String> urls = results.
-      pokemons = [];
-      for (PokemonMinimal pokemon in lista.pokemons!) {
-        var fetchPokemon = await http.get(Uri.parse(pokemon.url!));
-        if (fetchPokemon.statusCode == 200) {
-          var pokemonResult = jsonDecode(fetchPokemon.body);
-          var pokemon = Pokemon.fromJson(pokemonResult);
-          print(pokemon.name);
-          pokemons.add(pokemon);
-        }
+      final pokemonList = jsonDecode(response.body);
+      for(final item in pokemonList) {
+        pokemons.add(Pokemon.fromJson(item));
       }
-      // lista.pokemons!.map((pokemon)async{
-      //   var fetchPokemon = await http.get(Uri.parse(pokemon.url!));
-      //   if (fetchPokemon.statusCode == 200) {
-      //     var pokemonResult = jsonDecode(fetchPokemon.body);
-      //     var pokemon = Pokemon.fromJson(pokemonResult);
-      //     print(pokemon.name);
-      //     pokemons.add(pokemon);
-      //   }
-      // }).toList();
-      // lista.pokemons!.map((pokemon) async {
-      //   var fetchPokemon = await http.get(Uri.parse(pokemon.url!));
-      //   if (fetchPokemon.statusCode == 200) {
-      //     var pokemonResult = jsonDecode(fetchPokemon.body);
-      //     var pokemon = Pokemon.fromJson(pokemonResult);
-      //     print(pokemon.name);
-      //     pokemons.add(pokemon);
-      //   }
-      // });
-      // pokemons.add(Pokemon(id: 1, name: 'Bulbasaur', image: ''));
-      // return result['results'];
       return pokemons;
     } else {
       throw Exception('Failed to load pokemons');
