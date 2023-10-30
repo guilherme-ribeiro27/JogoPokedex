@@ -14,8 +14,14 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late Future<List<Pokemon>> pokemons;
-  final int certos = 0;
-  final int errados = 0;
+  int certos = 0;
+  int errados = 0;
+  int total = 0;
+  bool initGame = true;
+  TextStyle headerStyle = const TextStyle(
+    fontSize: 26,
+    // fontWeight: FontWeight.bold,
+  );
   @override
   void initState() {
     super.initState();
@@ -27,27 +33,71 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: pokemons,
       builder: ((context, snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData && initGame) {
           var pokemons = snapshot.data as List<Pokemon>;
-          // if (pokemons.isEmpty)
-          //   return const Center(child: Text('Nenhum pokemon encontrado'));
+          pokemons.shuffle();
           var randomPokemons = pokemons.take(4).toList();
           var randomNumber = Random().nextInt(4);
           var pokemon = randomPokemons[randomNumber];
+          if(total == 10){
+            setState(() {
+              initGame = false;
+            });
+          }
           return Scaffold(
-            body: Column(
-              children: [
-                const Row(
-                  children: [
-                    Text('Certos: '),
-                    Text('Errados: '),
-                  ],
-                ),
-                Image.network(pokemon.image!),
-                Column(
-                  children: randomPokemons.map((e) => Text(e.name)).toList(),
-                )
-              ],
+            body: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                children: [
+                  Flex(
+                    direction: Axis.horizontal,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                        Text('Certos: $certos', style:headerStyle),
+                        Text('Errados: $errados',style:headerStyle),
+                      ],
+                    
+                  ),
+                  Image.network(pokemon.image!),
+                  Column(
+                    children: randomPokemons.map((e) => 
+                      TextButton(
+                        
+                        onPressed: (){
+                          if(e.name == pokemon.name){
+                            setState(() {
+                              certos++;
+                              total++;
+                            });
+                          }else{
+                            setState(() {
+                              errados ++;
+                              total++;
+                            });
+                          }
+                        },
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all(const Size(double.infinity, 60)),
+                          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+                          elevation: MaterialStateProperty.all(5)
+                        ),
+                        child:Text(e.name, style: const TextStyle(color: Colors.white),),
+                      )
+                    ).toList(),
+                  )
+                ],
+              ),
+            ),
+          );
+        }else{
+          return Scaffold(
+            body: Center(
+              child: Column(
+                children: [
+                  const Text('Iniciar Jogo?'),
+
+                ],
+              ),
             ),
           );
         }
@@ -64,7 +114,7 @@ class _HomeState extends State<Home> {
         .get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=151'));
     if (response.statusCode == 200) {
       final pokemonList = jsonDecode(response.body);
-      for(final item in pokemonList) {
+      for(final item in pokemonList['results']) {
         pokemons.add(Pokemon.fromJson(item));
       }
       return pokemons;
@@ -73,16 +123,4 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<List<Pokemon>> fetchPokemonData(List<String> urls) async {
-    List<Pokemon> pokemons = [];
-    for (var url in urls) {
-      var response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        var result = jsonDecode(response.body);
-        var pokemon = Pokemon.fromJson(result);
-        pokemons.add(pokemon);
-      }
-    }
-    return pokemons;
-  }
 }
