@@ -17,7 +17,8 @@ class _HomeState extends State<Home> {
   int certos = 0;
   int errados = 0;
   int total = 0;
-  bool initGame = true;
+  bool initGame = false;
+  bool fimDeJogo = false;
   TextStyle headerStyle = const TextStyle(
     fontSize: 26,
     // fontWeight: FontWeight.bold,
@@ -25,6 +26,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    //Chama a função de buscar na API
     pokemons = fetchPokemons();
   }
 
@@ -33,16 +35,77 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: pokemons,
       builder: ((context, snapshot) {
-        if (snapshot.hasData && initGame) {
+        //Verifica se já tem os dados
+        if (snapshot.hasData) {
+          //verifica se o jogo já foi iniciado
+          if (initGame == false) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Bem vindo ao GameDex',
+                      style: TextStyle(fontSize: 30),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            initGame = true;
+                            certos = 0;
+                            errados = 0;
+                            total = 0;
+                          });
+                        },
+                        child: const Text(
+                          'Iniciar',
+                          style: TextStyle(fontSize: 20),
+                        )),
+                  ],
+                ),
+              ),
+            );
+          }
           var pokemons = snapshot.data as List<Pokemon>;
+
+          //ordena aleatoriamente a lista de pokemons
           pokemons.shuffle();
+
+          //pega os 4 primeiros pokemons da lista
           var randomPokemons = pokemons.take(4).toList();
+
+          //pega um numero aleatorio entre 0 e 3
           var randomNumber = Random().nextInt(4);
+          //seleciona um pokemon aleatorio da lista
           var pokemon = randomPokemons[randomNumber];
-          if(total == 10){
-            setState(() {
-              initGame = false;
-            });
+
+          //verifica se o jogo chegou no fim
+          if (total == 10) {
+            return Container(
+              constraints: const BoxConstraints.expand(),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.background),
+              child: AlertDialog(
+                    title: const Text('Fim de jogo'),
+                    content: Text('Você acertou $certos de 10'),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            // Navigator.pop(context);
+                            setState(() {
+                              initGame = false;
+                              certos = 0;
+                              errados = 0;
+                              total = 0;
+                            });
+                          },
+                          child: const Text('Fechar'))
+                    ],
+                  ),
+            );
           }
           return Scaffold(
             body: Padding(
@@ -53,68 +116,108 @@ class _HomeState extends State<Home> {
                     direction: Axis.horizontal,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                        Text('Certos: $certos', style:headerStyle),
-                        Text('Errados: $errados',style:headerStyle),
-                      ],
-                    
+                      Text('Certos: $certos', style: headerStyle),
+                      Text('Errados: $errados', style: headerStyle),
+                    ],
                   ),
-                  Image.network(pokemon.image!),
-                  Column(
-                    children: randomPokemons.map((e) => 
-                      TextButton(
-                        
-                        onPressed: (){
-                          if(e.name == pokemon.name){
-                            setState(() {
-                              certos++;
-                              total++;
-                            });
-                          }else{
-                            setState(() {
-                              errados ++;
-                              total++;
-                            });
-                          }
-                        },
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all(const Size(double.infinity, 60)),
-                          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-                          elevation: MaterialStateProperty.all(5)
+                  Image.network(pokemon.image!, scale: 0.9),
+                  Flex(
+                    direction: Axis.vertical,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: randomPokemons.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextButton(
+                          onPressed: () async {
+                            if (e.name == pokemon.name) {
+                              mostrarAcertoErro(true);
+                              setState(() {
+                                certos++;
+                                total++;
+                              });
+                            } else {
+                              mostrarAcertoErro(false);
+                              setState(() {
+                                errados++;
+                                total++;
+                              });
+                            }
+                          },
+                          style: ButtonStyle(
+                            minimumSize: MaterialStateProperty.all(
+                                const Size(double.infinity, 60)),
+                            backgroundColor: MaterialStateProperty.all(
+                                Theme.of(context).colorScheme.primary),
+                            elevation: MaterialStateProperty.all(5),
+                          ),
+                          child: Text(
+                            e.name,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 20),
+                          ),
                         ),
-                        child:Text(e.name, style: const TextStyle(color: Colors.white),),
-                      )
-                    ).toList(),
+                      );
+                    }).toList(),
                   )
                 ],
               ),
             ),
           );
-        }else{
+        } else {
+          //mensagem antes de iniciar o jogo
           return Scaffold(
             body: Center(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Iniciar Jogo?'),
-
+                  const Text(
+                    'Bem vindo ao GameDex',
+                    style: TextStyle(fontSize: 30),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        setState(() {
+                          initGame = true;
+                          certos = 0;
+                          errados = 0;
+                          total = 0;
+                        });
+                      },
+                      child: const Text(
+                        'Iniciar',
+                        style: TextStyle(fontSize: 20),
+                      )),
                 ],
               ),
             ),
           );
         }
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
       }),
     );
   }
 
+  void mostrarAcertoErro(bool acerto) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor:
+          acerto ? Colors.green : Theme.of(context).colorScheme.error,
+      content: acerto ? const Text('Correto!') : const Text('Errado!'),
+      behavior: SnackBarBehavior.floating,
+      duration: Duration(milliseconds: 500),
+    ));
+  }
   Future<List<Pokemon>> fetchPokemons() async {
+    //Chama a API
     final List<Pokemon> pokemons = [];
     final response = await http
         .get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=151'));
     if (response.statusCode == 200) {
       final pokemonList = jsonDecode(response.body);
-      for(final item in pokemonList['results']) {
+      for (final item in pokemonList['results']) {
         pokemons.add(Pokemon.fromJson(item));
       }
       return pokemons;
@@ -122,5 +225,4 @@ class _HomeState extends State<Home> {
       throw Exception('Failed to load pokemons');
     }
   }
-
 }
