@@ -2,17 +2,19 @@ name: jogo_pokedex
 description: A new Flutter project.
 
 # Prevent accidental publishing to pub.dev.
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.5 <4.0.0'
+  sdk: ">=3.0.5 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   http: ^1.1.0
+  google_fonts: ^6.1.0
+
   flutter_localizations:
     sdk: flutter
 
@@ -31,3 +33,11 @@ flutter:
   assets:
     # Add assets from the images directory to the application.
     - assets/images/
+    - assets/icons/
+  fonts:
+    - family: PokemonSolid
+      fonts:
+        - asset: assets/fonts/Pokemon Solid.ttf
+    - family: PokemonHollow
+      fonts:
+        - asset: assets/fonts/Pokemon Hollow.ttf
